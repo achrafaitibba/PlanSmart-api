@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 .idea/.gitignore
 .gitignore
+src/main/resources/application-dev.yml
 ### STS ###
 .apt_generated
 .classpath
