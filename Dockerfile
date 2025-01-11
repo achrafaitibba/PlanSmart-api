@@ -19,7 +19,7 @@ java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql.row
     --compress 2 \
     --no-header-files \
     --no-man-pages \
-    --output /opt/jre-minimal \
+    --output /opt/jre-minimal
 
 # Stage 3: Final image with minimal JRE and application (Alpine with glibc)
 FROM alpine:3.18
