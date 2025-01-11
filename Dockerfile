@@ -7,10 +7,9 @@ RUN ./mvnw dependency:go-offline
 COPY ./src ./src
 RUN ./mvnw clean install -DskipTests
 
-# Stage 2: Build the minimal JRE using jlink
-FROM amazoncorretto:17 AS jre-builder
+# Stage 2: Build the minimal JRE using Eclipse Temurin JDK
+FROM eclipse-temurin:17-alpine AS jre-builder
 WORKDIR /opt/jre
-RUN yum install -y binutils
 RUN jlink \
     --module-path "$JAVA_HOME/jmods" \
     --add-modules java.base,java.compiler,java.desktop,java.instrument,java.management,\
@@ -20,18 +19,20 @@ java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql.row
     --compress 2 \
     --no-header-files \
     --no-man-pages \
-    --output /opt/jre-minimal
+    --output /opt/jre-minimal \
 
-# Stage 3: Final image with minimal JRE and application
-FROM bitnami/minideb:bullseye
+# Stage 3: Final image with minimal JRE and application (Alpine with glibc)
+FROM alpine:3.18
 WORKDIR /opt/app
+#To follow Docker security best practices by running your application as a non-root user.
+#RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#USER appuser
 ENV JAVA_HOME=/opt/jre-minimal
 ENV PATH="$PATH:$JAVA_HOME/bin"
 COPY --from=jre-builder /opt/jre-minimal /opt/jre-minimal
 COPY --from=maven-builder /opt/app/target/PlanSmart.jar /opt/app/PlanSmart.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/opt/app/PlanSmart.jar"]
-
 
 ## To find needed dependencies
 #mkdir app
