@@ -10,19 +10,29 @@ RUN ./mvnw clean install -DskipTests
 # Stage 2: Build the minimal JRE using Eclipse Temurin JDK
 FROM eclipse-temurin:17-alpine AS jre-builder
 WORKDIR /opt/jre
+COPY --from=maven-builder /opt/app/target/PlanSmart.jar /opt/app/PlanSmart.jar
+# Create a directory to unzip PlanSmart.jar
+RUN mkdir /opt/unzip && cd /opt/unzip && unzip /opt/app/PlanSmart.jar
+# Use jdeps to find required modules with correct class path
+RUN jdeps \
+    --ignore-missing-deps \
+    --print-module-deps \
+    --multi-release 17 \
+    --class-path "/opt/unzip/BOOT-INF/lib/*" \
+    --module-path "/opt/unzip/BOOT-INF/lib/*" \
+    /opt/unzip/BOOT-INF/classes \
+    > /opt/module-list.txt
+# Build minimal JRE using the module list
 RUN jlink \
     --module-path "$JAVA_HOME/jmods" \
-    --add-modules java.base,java.compiler,\
-java.desktop,java.instrument,java.management,\
-java.net.http,java.prefs,java.rmi,\
-java.scripting,java.security.jgss,\
-java.sql.rowset,jdk.jfr,jdk.unsupported \
-    --verbose \
+    --add-modules $(cat /opt/module-list.txt) \
     --strip-debug \
     --compress 2 \
     --no-header-files \
     --no-man-pages \
     --output /opt/jre-minimal
+# Clean up the unzipped files
+RUN rm -Rf /opt/unzip
 
 # Stage 3: Final image with minimal JRE and application (Alpine with glibc)
 FROM alpine:3.18
@@ -38,13 +48,13 @@ EXPOSE 8080
 ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/opt/app/PlanSmart.jar"]
 
 ########################
-## To find needed dependencies
-#mkdir app
-#cd ./app
-#unzip ../app.jar
+## To find needed modules
+#mkdir modules
+#cd ./modules
+#unzip ../PlanSmart.jar
 #cd ..
-#jdeps --print-module-deps --ignore-missing-deps --recursive --multi-release 17 --class-path="./app/BOOT-INF/lib/*" --module-path="./app/BOOT-INF/lib/*" ./app.jar
-#rm -Rf ./app
+#jdeps --print-module-deps --ignore-missing-deps --recursive --multi-release 17 --class-path="./modules/BOOT-INF/lib/*" --module-path="./modules/BOOT-INF/lib/*" ./target/PlanSmart.jar
+#rm -Rf ./modules
 ########################
 #Or just use : --add-modules ALL-MODULE-PATH \
 
