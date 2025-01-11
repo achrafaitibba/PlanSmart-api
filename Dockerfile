@@ -12,8 +12,11 @@ FROM eclipse-temurin:17-alpine AS jre-builder
 WORKDIR /opt/jre
 RUN jlink \
     --module-path "$JAVA_HOME/jmods" \
-    --add-modules java.base,java.compiler,java.desktop,java.instrument,java.management,\
-java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql.rowset,jdk.jfr,jdk.unsupported \
+    --add-modules java.base,java.compiler,\
+java.desktop,java.instrument,java.management,\
+java.net.http,java.prefs,java.rmi,\
+java.scripting,java.security.jgss,\
+java.sql.rowset,jdk.jfr,jdk.unsupported \
     --verbose \
     --strip-debug \
     --compress 2 \
@@ -34,6 +37,7 @@ COPY --from=maven-builder /opt/app/target/PlanSmart.jar /opt/app/PlanSmart.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/opt/app/PlanSmart.jar"]
 
+########################
 ## To find needed dependencies
 #mkdir app
 #cd ./app
@@ -41,6 +45,7 @@ ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/opt/app/PlanSmart.ja
 #cd ..
 #jdeps --print-module-deps --ignore-missing-deps --recursive --multi-release 17 --class-path="./app/BOOT-INF/lib/*" --module-path="./app/BOOT-INF/lib/*" ./app.jar
 #rm -Rf ./app
-
+########################
 #Or just use : --add-modules ALL-MODULE-PATH \
+
 # jdeps --list-deps
