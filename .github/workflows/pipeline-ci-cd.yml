@@ -1,4 +1,4 @@
-name: Spring-App Deployment
+name: PlanSmart Api Deployment
 
 on:
   push:
