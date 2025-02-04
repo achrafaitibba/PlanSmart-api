@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   spring-app:
-    image: ghcr.io/achrafaitibba/plansmart-api:latest
+    image: ghcr.io/achrafaitibba/plansmart-api:0.0.1
     restart: always
     environment:
       - VIRTUAL_HOST=api-dev.plansmart.me

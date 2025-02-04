@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: plansmart-api:latest
+  IMAGE_NAME: plansmart-api:0.0.1
 
 jobs:
   build-and-push:
