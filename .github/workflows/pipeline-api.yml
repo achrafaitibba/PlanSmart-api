@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '/.github/workflows/pipeline-api.yml'
+      - .github/workflows/pipeline-api.yml
       - 'src/**'
       - 'Dockerfile'
       - 'docker-compose.api.yml'
