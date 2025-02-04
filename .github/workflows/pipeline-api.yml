@@ -62,6 +62,8 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # Add GHCR login
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
             cd /home/apps/plansmart
             docker compose -f docker-compose.api.yml pull
             docker compose -f docker-compose.api.yml up -d --force-recreate
