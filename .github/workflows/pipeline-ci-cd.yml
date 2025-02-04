@@ -8,10 +8,11 @@ on:
       - 'src/**'
       - 'Dockerfile'
       - 'docker-compose.api.yml'
+      - '/.github/workflows/pipeline-ci-cd.yml'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/spring-app
+  IMAGE_NAME: ${{ github.repository }}/plansmart
 
 jobs:
   build-and-push:

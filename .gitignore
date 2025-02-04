@@ -6,6 +6,9 @@ target/
 .idea/.gitignore
 .gitignore
 src/main/resources/application-dev.yml
+.env
+infos.txt
+app
 ### STS ###
 .apt_generated
 .classpath
