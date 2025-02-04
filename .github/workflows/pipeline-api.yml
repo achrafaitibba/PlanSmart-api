@@ -8,7 +8,7 @@ on:
       - 'src/**'
       - 'Dockerfile'
       - 'docker-compose.api.yml'
-      - '/.github/workflows/pipeline-ci-cd.yml'
+      - '/.github/workflows/pipeline-api.yml'
 
 env:
   REGISTRY: ghcr.io
