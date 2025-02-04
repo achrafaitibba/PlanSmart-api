@@ -37,7 +37,7 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-#          labels: ${{ env.IMAGE_NAME }}
+          labels: ${{ env.IMAGE_NAME }}
 
   deploy:
     runs-on: ubuntu-latest
