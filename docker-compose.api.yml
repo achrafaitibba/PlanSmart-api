@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  spring-app:
+    image: ghcr.io/achrafaitibba/plansmart-api:latest
+    restart: always
+    environment:
+      - VIRTUAL_HOST=api-dev.plansmart.me
+      - LETSENCRYPT_HOST=api-dev.plansmart.me
+      - LETSENCRYPT_EMAIL=aitibbaachraf@gmail.com
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+    networks:
+      - nginx-proxy-network
+
+networks:
+  nginx-proxy-network:
+    external: true
