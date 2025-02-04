@@ -5,14 +5,14 @@ services:
     image: ghcr.io/achrafaitibba/plansmart:latest
     restart: always
     environment:
-      - VIRTUAL_HOST=api-dev.plansmart.me
-      - LETSENCRYPT_HOST=api-dev.plansmart.me
-      - LETSENCRYPT_EMAIL=aitibbaachraf@gmail.com
-      - DB_NAME=${DB_NAME}
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - SPRING_DATASOURCE_USERNAME=${DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${DB_ROOT_PASSWORD}
+      VIRTUAL_HOST: api-dev.plansmart.me
+      LETSENCRYPT_HOST: api-dev.plansmart.me
+      LETSENCRYPT_EMAIL: aitibbaachraf@gmail.com
+      DB_NAME: ${DB_NAME}
+      DB_HOST: mysql
+      B_PORT: 3306
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
       - nginx-proxy-network
       - app-network
@@ -21,14 +21,16 @@ services:
         condition: service_healthy
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.2.0
     container_name: Plan-Smart-DB
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "3308:3306" #3307:3306/tcp
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -38,6 +40,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+
 
 volumes:
   mysql_data:
