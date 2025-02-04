@@ -10,7 +10,7 @@ services:
       LETSENCRYPT_EMAIL: aitibbaachraf@gmail.com
       DB_NAME: ${DB_NAME}
       DB_HOST: mysql
-      B_PORT: 3306
+      DB_PORT: 3306
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
@@ -28,7 +28,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
-      - "3308:3306" #3307:3306/tcp
+      - "3306:3306" #3307:3306/tcp
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
