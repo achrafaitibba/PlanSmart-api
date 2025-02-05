@@ -60,6 +60,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: mkdir -p ${{ env.APP_DIR }}
 
+      - name: List files
+        run: ls -la
       - name: Copy compose files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
