@@ -17,6 +17,9 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 networks:
   nginx-proxy-network:
