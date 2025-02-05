@@ -7,7 +7,7 @@ services:
       VIRTUAL_HOST: api-dev.plansmart.me
       LETSENCRYPT_HOST: api-dev.plansmart.me
       LETSENCRYPT_EMAIL: aitibbaachraf@gmail.com
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://plansmart-mysql:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
@@ -19,36 +19,11 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
-      timeout: 5s
+      timeout: 30s
       retries: 5
-
-  mysql:
-    image: mysql:8.2.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
-    command:
-      - --default-authentication-plugin=mysql_native_password
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --bind-address=0.0.0.0
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - app-network
-
-volumes:
-  mysql_data:
 
 networks:
   nginx-proxy-network:
     external: true
   app-network:
-    driver: bridge
+    external: true

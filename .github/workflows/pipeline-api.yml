@@ -8,12 +8,13 @@ on:
       - '.github/workflows/*.yml'
       - 'src/**'
       - 'Dockerfile'
-      - 'docker-compose.api.yml'
+      - 'docker-compose.*.yml'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: plansmart
-  COMPOSE_FILE: docker-compose.api.yml
+  COMPOSE_FILE_API: docker-compose.api.yml
+  COMPOSE_FILE_DB: docker-compose.db.yml
   DOCKERFILE: Dockerfile
   APP_DIR: /home/apps/plansmart
 
@@ -59,13 +60,15 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: mkdir -p ${{ env.APP_DIR }}
 
-      - name: Copy compose file to VPS
+      - name: Copy compose files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: ${{ env.COMPOSE_FILE }}
+          source: |
+            ${{ env.COMPOSE_FILE_API }}
+            ${{ env.COMPOSE_FILE_DB }}
           target: ${{ env.APP_DIR }}/
 
       - name: Deploy to VPS
@@ -84,12 +87,12 @@ jobs:
             docker network create app-network || true
 
             # Start MySQL if not already running
-            if [ -z "$(docker ps -q -f name=mysql)" ]; then
-              docker compose -f ${{ env.COMPOSE_FILE }} up -d mysql
+            if [ -z "$(docker ps -q -f name=plansmart-mysql)" ]; then
+              docker compose -f ${{ env.COMPOSE_FILE_DB }} up -d
             fi
 
             # Wait for MySQL to be healthy
-            MYSQL_CONTAINER=$(docker compose -f ${{ env.COMPOSE_FILE }} ps -q mysql)
+            MYSQL_CONTAINER=$(docker compose -f ${{ env.COMPOSE_FILE_DB }} ps -q mysql)
             while [ "$(docker inspect -f '{{.State.Health.Status}}' $MYSQL_CONTAINER)" != "healthy" ]; do
               sleep 5
               echo "Waiting for MySQL to become healthy..."
@@ -108,13 +111,13 @@ jobs:
             fi
 
             # Pull new image
-            docker compose -f ${{ env.COMPOSE_FILE }} pull api
+            docker compose -f ${{ env.COMPOSE_FILE_API }} pull api
 
             # Start new containers
-            docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE }} up -d api
+            docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} up -d api
 
             # Wait for new API container to be healthy
-            NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE }} ps -q api)
+            NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} ps -q api)
             if [ -n "$NEW_API_CONTAINER" ]; then
               while [ "$(docker inspect -f '{{.State.Health.Status}}' $NEW_API_CONTAINER)" != "healthy" ]; do
                 sleep 5
@@ -127,7 +130,7 @@ jobs:
 
             # Stop old containers
             if [ -n "$CURRENT_COLOR" ]; then
-              docker compose -p $CURRENT_COLOR -f ${{ env.COMPOSE_FILE }} down
+              docker compose -p $CURRENT_COLOR -f ${{ env.COMPOSE_FILE_API }} down
             fi
 
             # Update current color
