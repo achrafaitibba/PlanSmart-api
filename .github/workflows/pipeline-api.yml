@@ -1,18 +1,22 @@
-name: PlanSmart Api Deployment
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: plansmart
+  COMPOSE_FILE: docker-compose.api.yml
+  DOCKERFILE: Dockerfile
+  APP_DIR: /home/apps/plansmart
+  PIPELINE_NAME: "PlanSmart Api Deployment"
+
+name: ${{env.PIPELINE_NAME}}
 
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/pipeline-api.yml'
+      - '.github/workflows/*.yml'
       - 'src/**'
-      - 'Dockerfile'
-      - 'docker-compose.api.yml'
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: plansmart
+      - '${{ env.DOCKERFILE }}'
+      - '${{ env.COMPOSE_FILE }}'
 
 jobs:
   build-and-push:
@@ -27,7 +31,7 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,9 +39,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ${{ env.DOCKERFILE }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          labels: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,14 +52,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Ensure directory exists on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: mkdir -p ${{ env.APP_DIR }}
+
       - name: Copy compose file to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.api.yml"
-          target: "/home/apps/plansmart/"
+          source: ${{ env.COMPOSE_FILE }}
+          target: ${{ env.APP_DIR }}/
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
@@ -62,8 +76,8 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Add GHCR login
-            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
-            cd /home/apps/plansmart
-            docker compose -f docker-compose.api.yml pull
-            docker compose -f docker-compose.api.yml up -d --force-recreate
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} \
+              -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+            cd ${{ env.APP_DIR }}
+            docker compose -f ${{ env.COMPOSE_FILE }} pull
+            docker compose -f ${{ env.COMPOSE_FILE }} up -d --force-recreate
