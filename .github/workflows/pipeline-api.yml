@@ -4,9 +4,8 @@ env:
   COMPOSE_FILE: docker-compose.api.yml
   DOCKERFILE: Dockerfile
   APP_DIR: /home/apps/plansmart
-  PIPELINE_NAME: "PlanSmart Api Deployment"
 
-name: ${{env.PIPELINE_NAME}}
+name: PlanSmart Api Deployment
 
 on:
   push:
@@ -15,8 +14,8 @@ on:
     paths:
       - '.github/workflows/*.yml'
       - 'src/**'
-      - '${{ env.DOCKERFILE }}'
-      - '${{ env.COMPOSE_FILE }}'
+      - 'Dockerfile'
+      - 'docker-compose.api.yml'
 
 jobs:
   build-and-push:
