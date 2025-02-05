@@ -66,9 +66,7 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: |
-            ${{ env.COMPOSE_FILE_API }}
-            ${{ env.COMPOSE_FILE_DB }}
+          source: ${{ env.COMPOSE_FILE_API }} ${{ env.COMPOSE_FILE_DB }}
           target: ${{ env.APP_DIR }}/
 
       - name: Deploy to VPS
