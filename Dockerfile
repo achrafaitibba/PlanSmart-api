@@ -37,6 +37,7 @@ RUN rm -Rf /opt/unzip
 # Stage 3: Final image with minimal JRE and application (Alpine with glibc)
 FROM alpine:3.18
 WORKDIR /opt/app
+RUN apk add --no-cache curl
 #To follow Docker security best practices by running your application as a non-root user.
 #RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 #USER appuser
