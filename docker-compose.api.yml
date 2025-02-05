@@ -24,7 +24,6 @@ services:
 
   mysql:
     image: mysql:8.2.0
-    container_name: Plan-Smart-DB
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}

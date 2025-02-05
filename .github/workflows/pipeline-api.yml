@@ -84,7 +84,9 @@ jobs:
             docker network create app-network || true
 
             # Start MySQL if not already running
-            docker compose -f ${{ env.COMPOSE_FILE }} up -d mysql
+            if [ -z "$(docker ps -q -f name=mysql)" ]; then
+              docker compose -f ${{ env.COMPOSE_FILE }} up -d mysql
+            fi
 
             # Wait for MySQL to be healthy
             MYSQL_CONTAINER=$(docker compose -f ${{ env.COMPOSE_FILE }} ps -q mysql)
@@ -113,10 +115,15 @@ jobs:
 
             # Wait for new API container to be healthy
             NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE }} ps -q api)
-            while [ "$(docker inspect -f '{{.State.Health.Status}}' $NEW_API_CONTAINER)" != "healthy" ]; do
-              sleep 5
-              echo "Waiting for new API container to become healthy..."
-            done
+            if [ -n "$NEW_API_CONTAINER" ]; then
+              while [ "$(docker inspect -f '{{.State.Health.Status}}' $NEW_API_CONTAINER)" != "healthy" ]; do
+                sleep 5
+                echo "Waiting for new API container to become healthy..."
+              done
+            else
+              echo "Error: New API container not found!"
+              exit 1
+            fi
 
             # Stop old containers
             if [ -n "$CURRENT_COLOR" ]; then
