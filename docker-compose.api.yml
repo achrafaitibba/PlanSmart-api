@@ -6,7 +6,7 @@ services:
       VIRTUAL_HOST: api-dev.plansmart.me
       LETSENCRYPT_HOST: api-dev.plansmart.me
       LETSENCRYPT_EMAIL: aitibbaachraf@gmail.com
-      SPRING_DATASOURCE_URL: jdbc:mysql://plansmart-mysql:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:

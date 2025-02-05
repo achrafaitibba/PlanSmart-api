@@ -2,7 +2,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.2.0
-    container_name: plansmart-mysql  # Fixed container name
+    container_name: mysql  # Fixed container name
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
