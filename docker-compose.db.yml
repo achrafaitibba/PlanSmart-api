@@ -25,7 +25,8 @@ services:
     ports:
       - ${DB_EXPOSED_PORT}:3306
 volumes:
-  ${APP_NAME}-mysql_data:
+  mysql_data:
+    name: ${APP_NAME}-mysql_data
 
 networks:
   ${APP_NAME}-network:
