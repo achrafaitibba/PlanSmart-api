@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: plansmart
   COMPOSE_FILE_API: docker-compose.api.yml
   COMPOSE_FILE_DB: docker-compose.db.yml
-  APP_DIR: /home/apps/${{env.APP_NAME}}
+  APP_DIR: /home/apps/plansmart
 
 jobs:
   deploy:
