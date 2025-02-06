@@ -80,13 +80,13 @@ jobs:
             fi
 
             # Pull latest image (from previous build)
-            docker compose -f ${{ env.COMPOSE_FILE_API }} pull api
+            docker compose -f ${{ env.COMPOSE_FILE_API }} pull plansmart-api
 
             # Start new containers
-            docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} up -d api
+            docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} up -d plansmart-api
 
             # Wait for new API container to be healthy
-            NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} ps -q api)
+            NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} ps -q plansmart-api)
             if [ -n "$NEW_API_CONTAINER" ]; then
               while [ "$(docker inspect -f '{{.State.Health.Status}}' $NEW_API_CONTAINER)" != "healthy" ]; do
                 sleep 5
