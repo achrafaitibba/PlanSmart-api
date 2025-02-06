@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ${APP_NAME}-mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
       - app-network
     ports:

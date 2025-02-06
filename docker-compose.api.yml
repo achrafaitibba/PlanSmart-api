@@ -10,7 +10,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
-      - ${APP_NAME}-network
+      - app-network
       - nginx-proxy-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
