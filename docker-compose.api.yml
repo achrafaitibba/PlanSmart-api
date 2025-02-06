@@ -1,5 +1,5 @@
 services:
-  api:
+  plansmart-api:
     image: ghcr.io/achrafaitibba/plansmart:latest
     restart: always
     environment:
