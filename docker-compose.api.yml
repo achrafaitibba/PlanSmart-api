@@ -1,4 +1,4 @@
-x-variables: &variables
+x-variables:
   APP_NAME: plansmart
   DB_CONTAINER_NAME: plansmart-mysql
   API_IMAGE_NAME: plansmart
