@@ -21,7 +21,7 @@ services:
     volumes:
       - ${APP_NAME}-mysql_data:/var/lib/mysql
     networks:
-      - ${APP_NAME}-network
+      - app-network
     ports:
       - ${DB_EXPOSED_PORT}:3306
 volumes:
