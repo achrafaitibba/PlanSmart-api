@@ -12,6 +12,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: plansmart
   DOCKERFILE: Dockerfile
+  JAR_FILE_NAME: PlanSmart
 
 jobs:
   build-and-push:
@@ -35,6 +36,8 @@ jobs:
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
+          build-args: |
+            JAR_FILE_NAME=${{env.JAR_FILE_NAME}}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest

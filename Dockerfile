@@ -9,10 +9,10 @@ RUN ./mvnw clean install -DskipTests
 
 # Stage 2: Build the minimal JRE using Eclipse Temurin JDK
 FROM eclipse-temurin:17-alpine AS jre-builder
+ARG JAR_FILE_NAME
 WORKDIR /opt/jre
-COPY --from=maven-builder /opt/app/target/PlanSmart.jar /opt/app/PlanSmart.jar
-# Create a directory to unzip PlanSmart.jar
-RUN mkdir /opt/unzip && cd /opt/unzip && unzip /opt/app/PlanSmart.jar
+COPY --from=maven-builder /opt/app/target/${JAR_FILE_NAME}.jar /opt/app/${JAR_FILE_NAME}.jar
+RUN mkdir /opt/unzip && cd /opt/unzip && unzip /opt/app/${JAR_FILE_NAME}.jar
 # Use jdeps to find required modules with correct class path
 RUN jdeps \
     --ignore-missing-deps \
@@ -36,6 +36,8 @@ RUN rm -Rf /opt/unzip
 
 # Stage 3: Final image with minimal JRE and application (Alpine with glibc)
 FROM alpine:3.18
+ARG JAR_FILE_NAME
+ENV JAR_FILE_NAME=${JAR_FILE_NAME}
 WORKDIR /opt/app
 RUN apk add --no-cache curl
 #To follow Docker security best practices by running your application as a non-root user.
@@ -44,11 +46,9 @@ RUN apk add --no-cache curl
 ENV JAVA_HOME=/opt/jre-minimal
 ENV PATH="$PATH:$JAVA_HOME/bin"
 COPY --from=jre-builder /opt/jre-minimal /opt/jre-minimal
-COPY --from=maven-builder /opt/app/target/PlanSmart.jar /opt/app/PlanSmart.jar
+COPY --from=maven-builder /opt/app/target/${JAR_FILE_NAME}.jar /opt/app/${JAR_FILE_NAME}.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/opt/app/PlanSmart.jar"]
-
-########################
+ENTRYPOINT java -Dspring.profiles.active=prod -jar /opt/app/$JAR_FILE_NAME.jar
 ## To find needed modules
 #mkdir modules
 #cd ./modules
