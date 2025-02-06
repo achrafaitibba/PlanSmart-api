@@ -1,18 +1,12 @@
 name: Deploy Application
-
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/*.yml'
+      - '.github/workflows/pipeline-deploy-api.yml'
       - 'docker-compose.*.yml'
-  workflow_run:
-    workflows: [ "Build and Push Image" ]
-    types:
-      - completed
   workflow_dispatch:  # Allow manual triggering
-
 env:
   APP_NAME: plansmart
   REGISTRY: ghcr.io
@@ -20,16 +14,20 @@ env:
   COMPOSE_FILE_API: docker-compose.api.yml
   COMPOSE_FILE_DB: docker-compose.db.yml
   APP_DIR: /home/apps/plansmart
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name == 'push' && !contains(github.event.head_commit.modified, 'src/') && 
-       !contains(github.event.head_commit.modified, 'Dockerfile'))
     steps:
+      - name: Wait for Build Workflow
+        if: github.event_name == 'push'
+        uses: actions/wait-for-workflow-run@v1
+        with:
+          token: ${{ github.token }}
+          workflow: Build and Push Image
+          check_run_conclusion: success
+          branch: ${{ github.ref_name }}
+          sha: ${{ github.sha }}
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -60,23 +58,23 @@ jobs:
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} \
               -u ${{ secrets.GHCR_USERNAME }} --password-stdin
             cd ${{ env.APP_DIR }}
-              
+
             # Create external networks if they don't exist
             docker network create nginx-proxy-network || true
             docker network create ${{env.APP_NAME}}-network || true
-              
+
             # Start MySQL with project name
             if [ -z "$(docker ps -q -f name=${{env.APP_NAME}}-mysql)" ]; then
               docker compose -p ${{env.APP_NAME}} -f ${{ env.COMPOSE_FILE_DB }} up -d
             fi
-              
+
             # Wait for MySQL to be healthy
             MYSQL_CONTAINER=$(docker compose -p ${{env.APP_NAME}} -f ${{ env.COMPOSE_FILE_DB }} ps -q mysql)
             while [ "$(docker inspect -f '{{.State.Health.Status}}' $MYSQL_CONTAINER)" != "healthy" ]; do
               sleep 5
               echo "Waiting for MySQL to become healthy..."
             done
-              
+
             # Determine current color
             CURRENT_COLOR_FILE="${{ env.APP_DIR }}/current_color"
             if [ -f "$CURRENT_COLOR_FILE" ]; then
@@ -87,14 +85,13 @@ jobs:
               fi
             else
               NEW_COLOR="blue"
-            fi 
-            
+            fi
+
             # Pull latest image
             docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} pull
-              
+
             # Start new containers with project name including color
             docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} up -d
-              
             # Wait for new API container to be healthy
             NEW_API_CONTAINER=$(docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} ps -q api)
             if [ -n "$NEW_API_CONTAINER" ]; then
@@ -105,12 +102,11 @@ jobs:
             else
               echo "Error: New API container not found!"
               exit 1
-            fi
-              
+            fi              
+
             # Stop old containers
             if [ -n "$CURRENT_COLOR" ]; then
               docker compose -p ${{env.APP_NAME}}-${CURRENT_COLOR} -f ${{ env.COMPOSE_FILE_API }} down
-             fi
-              
+            fi
             # Update current color
             echo $NEW_COLOR > $CURRENT_COLOR_FILE
