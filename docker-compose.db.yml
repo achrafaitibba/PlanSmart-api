@@ -1,9 +1,10 @@
-# MySQL Docker Compose (updated)
-version: '3.8'
+x-variables: &variables
+  APP_NAME: plansmart
+  EXPOSED_PORT: 3306
 services:
   mysql:
     image: mysql:8.2.0
-    container_name: mysql
+    container_name: ${APP_NAME}-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -21,13 +22,14 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ${APP_NAME}-mysql_data:/var/lib/mysql
     networks:
-      - app-network
-
+      - ${APP_NAME}-network
+    ports:
+      - ${EXPOSED_PORT}:3306
 volumes:
-  mysql_data:
+  ${APP_NAME}-mysql_data:
 
 networks:
-  app-network:
+  ${APP_NAME}-network:
     external: true

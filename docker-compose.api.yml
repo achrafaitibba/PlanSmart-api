@@ -1,25 +1,35 @@
+x-variables: &variables
+  APP_NAME: plansmart
+  DB_CONTAINER_NAME: plansmart-mysql
+  API_IMAGE_NAME: plansmart
+  VIRTUAL_HOST: api-dev.plansmart.me
+  EMAIL: aitibbaachraf@gmail.com
+  EXPOSED_PORT: 8080
+  GITHUB_USERNAME: achrafaitibba
 services:
-  plansmart-api:
-    image: ghcr.io/achrafaitibba/plansmart:latest
+  ${APP_NAME}-api:
+    image: ghcr.io/${GITHUB_USERNAME}/${API_IMAGE_NAME}:latest
     restart: always
     environment:
-      VIRTUAL_HOST: api-dev.plansmart.me
-      LETSENCRYPT_HOST: api-dev.plansmart.me
-      LETSENCRYPT_EMAIL: aitibbaachraf@gmail.com
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_EMAIL: ${EMAIL}
+      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_CONTAINER_NAME}:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
-      - app-network
+      - ${APP_NAME}-network
       - nginx-proxy-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 30s
       retries: 5
+    ports:
+      - ${EXPOSED_PORT}:8080
 
 networks:
   nginx-proxy-network:
     external: true
-  app-network:
+  ${APP_NAME}-network:
     external: true
