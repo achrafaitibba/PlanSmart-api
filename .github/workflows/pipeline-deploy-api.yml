@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/*.yml'
       - 'docker-compose.*.yml'
+  workflow_run:
+    workflows: [ "Build and Push Image" ]
+    types:
+      - completed
   workflow_dispatch:  # Allow manual triggering
 
 env:

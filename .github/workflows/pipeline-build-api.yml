@@ -8,7 +8,6 @@ on:
       - 'src/**'
       - 'Dockerfile'
       - '.github/workflows/pipeline-build-api.yml'
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: plansmart
