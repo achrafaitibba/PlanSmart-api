@@ -29,5 +29,6 @@ volumes:
     name: ${APP_NAME}-mysql_data
 
 networks:
-  ${APP_NAME}-network:
+  app-network:
+    name: ${APP_NAME}-network
     external: true
