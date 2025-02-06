@@ -51,23 +51,23 @@ jobs:
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} \
               -u ${{ secrets.GHCR_USERNAME }} --password-stdin
             cd ${{ env.APP_DIR }}
-
+              
             # Create external networks if they don't exist
             docker network create nginx-proxy-network || true
             docker network create ${{env.APP_NAME}}-network || true
-
-            # Start MySQL if not already running
-            if [ -z "$(docker ps -q -f name=${{env.IMAGE_NAME}}-mysql)" ]; then
-              docker compose -f ${{ env.COMPOSE_FILE_DB }} up -d
+              
+            # Start MySQL with project name
+            if [ -z "$(docker ps -q -f name=${{env.APP_NAME}}-mysql)" ]; then
+              docker compose -p ${{env.APP_NAME}} -f ${{ env.COMPOSE_FILE_DB }} up -d
             fi
-
+              
             # Wait for MySQL to be healthy
-            MYSQL_CONTAINER=$(docker compose -f ${{ env.COMPOSE_FILE_DB }} ps -q mysql)
+            MYSQL_CONTAINER=$(docker compose -p ${{env.APP_NAME}} -f ${{ env.COMPOSE_FILE_DB }} ps -q mysql)
             while [ "$(docker inspect -f '{{.State.Health.Status}}' $MYSQL_CONTAINER)" != "healthy" ]; do
               sleep 5
               echo "Waiting for MySQL to become healthy..."
             done
-
+              
             # Determine current color
             CURRENT_COLOR_FILE="${{ env.APP_DIR }}/current_color"
             if [ -f "$CURRENT_COLOR_FILE" ]; then
@@ -78,16 +78,16 @@ jobs:
               fi
             else
               NEW_COLOR="blue"
-            fi
-
-            # Pull latest image (from previous build)
-            docker compose -f ${{ env.COMPOSE_FILE_API }} pull ${{env.IMAGE_NAME}}-api
-
-            # Start new containers
-            docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} up -d ${{env.IMAGE_NAME}}-api
-
+            fi 
+            
+            # Pull latest image
+            docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} pull
+              
+            # Start new containers with project name including color
+            docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} up -d
+              
             # Wait for new API container to be healthy
-            NEW_API_CONTAINER=$(docker compose -p $NEW_COLOR -f ${{ env.COMPOSE_FILE_API }} ps -q ${{env.IMAGE_NAME}}-api)
+            NEW_API_CONTAINER=$(docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} ps -q api)
             if [ -n "$NEW_API_CONTAINER" ]; then
               while [ "$(docker inspect -f '{{.State.Health.Status}}' $NEW_API_CONTAINER)" != "healthy" ]; do
                 sleep 5
@@ -97,11 +97,11 @@ jobs:
               echo "Error: New API container not found!"
               exit 1
             fi
-
+              
             # Stop old containers
             if [ -n "$CURRENT_COLOR" ]; then
-              docker compose -p $CURRENT_COLOR -f ${{ env.COMPOSE_FILE_API }} down
-            fi
-
+              docker compose -p ${{env.APP_NAME}}-${CURRENT_COLOR} -f ${{ env.COMPOSE_FILE_API }} down
+             fi
+              
             # Update current color
             echo $NEW_COLOR > $CURRENT_COLOR_FILE

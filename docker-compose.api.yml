@@ -1,5 +1,5 @@
 services:
-  ${APP_NAME}-api:
+  api:
     image: ghcr.io/${GITHUB_USERNAME}/${API_IMAGE_NAME}:latest
     restart: always
     environment:
