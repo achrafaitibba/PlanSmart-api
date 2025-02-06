@@ -20,13 +20,13 @@ jobs:
     steps:
       - name: Wait for Build Workflow
         if: github.event_name == 'push'
-        uses: actions/wait-for-workflow-run@v1
+        uses: kamilchodola/wait-for-workflow-action@1.1.0
         with:
-          token: ${{ github.token }}
-          workflow: Build and Push Image
-          check_run_conclusion: success
-          branch: ${{ github.ref_name }}
-          sha: ${{ github.sha }}
+            github_token: ${{ github.token }}
+            workflow_id: Build and Push Image
+            check_run_conclusion: success
+            ref: ${{ github.ref_name }}
+            sha: ${{ github.sha }}
 
       - name: Checkout code
         uses: actions/checkout@v4
