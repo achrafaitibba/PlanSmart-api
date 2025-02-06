@@ -17,8 +17,6 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
-#    ports:
-#      - ${EXPOSED_PORT}:80800
 
 networks:
   nginx-proxy-network:
