@@ -54,7 +54,7 @@ jobs:
 
             # Create external networks if they don't exist
             docker network create nginx-proxy-network || true
-            docker network create app-network || true
+            docker network create ${{env.APP_NAME}}-network || true
 
             # Start MySQL if not already running
             if [ -z "$(docker ps -q -f name=${{env.IMAGE_NAME}}-mysql)" ]; then

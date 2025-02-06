@@ -1,11 +1,3 @@
-x-variables:
-  APP_NAME: plansmart
-  DB_CONTAINER_NAME: plansmart-mysql
-  API_IMAGE_NAME: plansmart
-  VIRTUAL_HOST: api-dev.plansmart.me
-  EMAIL: aitibbaachraf@gmail.com
-  EXPOSED_PORT: 8080
-  GITHUB_USERNAME: achrafaitibba
 services:
   ${APP_NAME}-api:
     image: ghcr.io/${GITHUB_USERNAME}/${API_IMAGE_NAME}:latest
