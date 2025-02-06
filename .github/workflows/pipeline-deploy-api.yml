@@ -1,12 +1,14 @@
 name: Deploy Application
+
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/pipeline-deploy-api.yml'
+      - '.github/workflows/*.yml'
       - 'docker-compose.*.yml'
   workflow_dispatch:  # Allow manual triggering
+
 env:
   APP_NAME: plansmart
   REGISTRY: ghcr.io
@@ -14,19 +16,41 @@ env:
   COMPOSE_FILE_API: docker-compose.api.yml
   COMPOSE_FILE_DB: docker-compose.db.yml
   APP_DIR: /home/apps/plansmart
+
 jobs:
-  deploy:
+  wait_for_prerequisites:
+    name: Wait for prerequisites workflows
     runs-on: ubuntu-latest
+    if: always()
     steps:
-      - name: Wait for Build Workflow
-        if: github.event_name == 'push'
-        uses: kamilchodola/wait-for-workflow-action@1.1.0
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
-            github_token: ${{ github.token }}
-            workflow_id: Build and Push Image
-            check_run_conclusion: success
-            ref: ${{ github.ref_name }}
-            sha: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+
+      - name: Wait for workflows
+        id: wait
+        uses: smartcontractkit/chainlink-github-actions/utils/wait-for-workflows@main
+        with:
+          max-timeout: "900"
+          polling-interval: "30"
+          # exclude-workflow-names: Deploy Application # REMOVE THIS LINE or comment it out
+          exclude-workflow-ids: ""
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          DEBUG: "true"
+
+  deploy:
+    name: Deploy
+    needs: [wait_for_prerequisites]
+    runs-on: ubuntu-latest
+    if: always() # Keep always() to ensure it runs for error checking, but we will exit if wait failed
+    steps:
+      - name: Check wait job result
+        if: needs.wait_for_prerequisites.result != 'success'
+        run: |
+          echo "Prerequisite workflows did not succeed. Deployment cancelled."
+          exit 1
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,6 +116,7 @@ jobs:
 
             # Start new containers with project name including color
             docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} up -d
+
             # Wait for new API container to be healthy
             NEW_API_CONTAINER=$(docker compose -p ${{env.APP_NAME}}-${NEW_COLOR} -f ${{ env.COMPOSE_FILE_API }} ps -q api)
             if [ -n "$NEW_API_CONTAINER" ]; then
@@ -102,11 +127,12 @@ jobs:
             else
               echo "Error: New API container not found!"
               exit 1
-            fi              
+            fi
 
             # Stop old containers
             if [ -n "$CURRENT_COLOR" ]; then
               docker compose -p ${{env.APP_NAME}}-${CURRENT_COLOR} -f ${{ env.COMPOSE_FILE_API }} down
-            fi
+             fi
+
             # Update current color
             echo $NEW_COLOR > $CURRENT_COLOR_FILE
